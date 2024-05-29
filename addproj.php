@@ -1,6 +1,6 @@
 <?php
 // Include database connection file
-include 'db_connection.php';
+include 'config.php';
 
 // Retrieve logged-in user's service_id (You need to implement user authentication first)
 $user_service_id = "123"; // Example service_id, replace this with actual logged-in user's service_id

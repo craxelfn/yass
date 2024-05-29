@@ -1,3 +1,10 @@
+<?php
+session_start();
+$user_id = $_SESSION['user_id'];
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,50 +80,5 @@
     </div>
     <?php include 'footer.php'; ?>    
   
-   
 </body>
 </html>
-
-
-
-<?php
-// Include database connection file
-include 'db_connection.php';
-
-// Check if mission ID is set
-if(isset($_POST['mission_id'])){
-    // Retrieve mission ID from form submission
-    $mission_id = $_POST['mission_id'];
-
-    // Check if utilisateur ID (user ID) is set (You need to implement user authentication to get the user ID)
-    $utilisateur_id = 123; // Example utilisateur ID, replace this with actual user ID
-
-    // Insert reservation into Reservations table
-    $insert_query = "INSERT INTO Reservations (mission_id, utilisateur_id) VALUES ('$mission_id', '$utilisateur_id')";
-    $insert_result = mysqli_query($connection, $insert_query);
-
-    // Check if reservation was inserted successfully
-    if($insert_result){
-        // Update mission record to decrement nombre_places_reserves by 1
-        $update_query = "UPDATE Missions SET nombre_places_reserves = nombre_places_reserves - 1 WHERE mission_id = $mission_id ";
-        $update_result = mysqli_query($connection, $update_query);
-
-        // Check if update was successful
-        if($update_result){
-            // Redirect back to the home page
-            header("Location: home.php");
-            exit();
-        } else {
-            // Handle update failure
-            echo "Error updating mission. Please try again.";
-        }
-    } else {
-        // Handle insertion failure
-        echo "Error inserting reservation. Please try again.";
-    }
-} else {
-    // Handle case where mission ID is not set
-    echo "Mission ID not provided.";
-}
-?>
-
