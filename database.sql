@@ -18,10 +18,7 @@ CREATE TABLE Vehicules (
 
 
 
--- Table des Missions
-CREATE TABLE Ville (
-    nom VARCHAR(50) PRIMARY KEY
-);
+
 
 CREATE TABLE Missions (
     mission_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -51,7 +48,7 @@ CREATE TABLE Utilisateurs (
     email VARCHAR(100),
     service_id VARCHAR(50) , 
     role VARCHAR(20), 
-    FOREIGN KEY (service_id) REFERENCES Services(service_id),
+    FOREIGN KEY (service_id) REFERENCES Services(service_id)
 ); 
 
 CREATE TABLE Reservations (
@@ -61,4 +58,9 @@ CREATE TABLE Reservations (
     role VARCHAR(50) default  'passager' , 
     FOREIGN KEY (mission_id) REFERENCES Missions(mission_id),
     FOREIGN KEY (utilisateur_id) REFERENCES Utilisateurs(utilisateur_id)
+);
+
+-- Table des Missions
+CREATE TABLE Ville (
+    nom VARCHAR(50) PRIMARY KEY
 );
