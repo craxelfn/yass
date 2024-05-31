@@ -63,7 +63,7 @@ $user_id = $_SESSION['user_id'];
 
                     // Display missions
                     while ($mission = mysqli_fetch_assoc($missions_result)) {
-                        echo "<div class='projects col-lg-6 mt-1 mb-1'>
+                        echo "<div class='projects col-lg-6 mt-1 mb-4'>
                                 <div class='project1 d-flex justify-content-between pe-1'>
                                     <div class='d-flex gap-3'>
                                         <img src='image/hiluximg.jpg' class='img-fluid p-1 projectimg' alt=''>

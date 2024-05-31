@@ -32,6 +32,7 @@ $vehicles_query = "
     SELECT MIN(vehicule_id) AS vehicule_id, marque 
     FROM Vehicules 
     WHERE est_occupe = FALSE 
+    AND service_id = '$user_service'
     GROUP BY marque
 ";
 $vehicles_result = mysqli_query($connection, $vehicles_query);
@@ -112,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <label for="formFile" class="form-label text-black-50 h4">Enter mission information</label>
         <!-- Select worker -->
         <select name="worker_id" class="form-control">
-            <option value="">Select Worker</option>
+            <option value="">Select driver</option>
             <?php while ($worker = mysqli_fetch_assoc($workers_result)) : ?>
                 <option value="<?php echo $worker['utilisateur_id']; ?>"><?php echo $worker['nom_utilisateur']; ?></option>
             <?php endwhile; ?>
