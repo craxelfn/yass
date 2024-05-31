@@ -17,11 +17,12 @@ $user_result = mysqli_query($connection, $user_query);
 $user = mysqli_fetch_assoc($user_result);
 
 // Fetch user reservations
-$reservations_query = "SELECT Missions.mission_id, Missions.destination, Missions.date_heure 
+$reservations_query = "SELECT Missions.mission_id, Missions.destination, Missions.date_heure, Reservations.role
                       FROM Reservations 
                       JOIN Missions ON Reservations.mission_id = Missions.mission_id 
-                      WHERE Reservations.utilisateur_id = '$user_id'";
+                      WHERE Reservations.utilisateur_id = '$user_id' AND est_supprimer = 0" ;
 $reservations_result = mysqli_query($connection, $reservations_query);
+
 
 // Handle profile update
 if (isset($_POST['save'])) {
@@ -91,21 +92,41 @@ if (isset($_POST['change_avatar'])) {
     exit();
 }
 
-// Handle reservation cancellation
 if (isset($_POST['delete_reservation'])) {
     $mission_id = $_POST['mission_id'];
-     // Update the mission's nombre_places_reserves
-     $update_mission_query = "UPDATE Missions SET nombre_places_reserves = nombre_places_reserves + 1 WHERE mission_id = ?";
-     $stmt_update_mission = $connection->prepare($update_mission_query);
-     $stmt_update_mission->bind_param("i", $mission_id);
-     $stmt_update_mission->execute();
-     // Prepare the SQL statement to delete the reservation
-    
-    $delete_reservation_query = "DELETE FROM Reservations WHERE utilisateur_id = '$user_id' AND mission_id = '$mission_id'";
-    mysqli_query($connection, $delete_reservation_query);
+    $role = $_POST['role'];
+
+    if ($role == 'driver') {
+        // Prepare and execute the query to delete reservations
+        $delete_reservations_query = "DELETE FROM Reservations WHERE mission_id = ?";
+        $stmt_delete_reservations = $connection->prepare($delete_reservations_query);
+        $stmt_delete_reservations->bind_param("i", $mission_id);
+        $stmt_delete_reservations->execute();
+
+        // Prepare and execute the query to delete the corresponding mission
+        $update_mission_query = "UPDATE Missions SET est_supprimer = 1, deletedby = ? WHERE mission_id = ?";
+        $stmt_update_mission = $connection->prepare($update_mission_query);
+        $stmt_update_mission->bind_param("si", $user_id, $mission_id);
+        $stmt_update_mission->execute();
+    } else {
+        // Update the mission's reserved places count
+        $update_mission_query = "UPDATE Missions SET nombre_places_reserves = nombre_places_reserves + 1 WHERE mission_id = ?";
+        $stmt_update_mission = $connection->prepare($update_mission_query);
+        $stmt_update_mission->bind_param("i", $mission_id);
+        $stmt_update_mission->execute();
+
+        // Prepare and execute the query to delete the reservation for the current user and mission
+        $delete_reservation_query = "DELETE FROM Reservations WHERE utilisateur_id = ? AND mission_id = ?";
+        $stmt_delete_reservation = $connection->prepare($delete_reservation_query);
+        $stmt_delete_reservation->bind_param("ii", $user_id, $mission_id);
+        $stmt_delete_reservation->execute();
+    }
+
+    // Redirect to profile page after deleting reservation
     header("Location: profile.php");
     exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -183,6 +204,7 @@ if (isset($_POST['delete_reservation'])) {
                                                     <th>Destination</th>
                                                     <th>Date</th>
                                                     <th>Time</th>
+                                                    <th>role</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -192,10 +214,12 @@ if (isset($_POST['delete_reservation'])) {
                                                     <td><?php echo $reservation['destination']; ?></td>
                                                     <td><?php echo date('Y-m-d', strtotime($reservation['date_heure'])); ?></td>
                                                     <td><?php echo date('H:i', strtotime($reservation['date_heure'])); ?></td>
+                                                    <td><?php echo $reservation['role']; ?></td>
                                                     <td class="d-flex gap-2">
                                                     
                                                         <form action="profile.php" method="POST" class="d-inline">
                                                             <input type="hidden" name="mission_id" value="<?php echo $reservation['mission_id']; ?>">
+                                                            <input type="hidden" name="role" value="<?php echo $reservation['role']; ?>">
                                                             <button type="submit" name="delete_reservation" class="btn btn-danger btn-sm mb-2">Cancel</button>
                                                         </form>
                                                     </td>

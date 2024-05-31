@@ -12,6 +12,7 @@ CREATE TABLE Vehicules (
     marque VARCHAR(50),
     nombre_places INT DEFAULT 5,
     est_occupe BOOLEAN DEFAULT FALSE,
+    est_supprimer BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (service_id) REFERENCES Services(service_id)
 );
 
@@ -31,6 +32,8 @@ CREATE TABLE Missions (
     date_heure DATETIME,
     nombre_places_reserves INT DEFAULT 4 ,
     statut VARCHAR(20),
+    est_supprimer BOOLEAN DEFAULT FALSE,
+    deletedby VARCHAR(50) DEFAULT 'admin', 
     FOREIGN KEY (service_id) REFERENCES Services(service_id),
     FOREIGN KEY (vehicule_id) REFERENCES Vehicules(vehicule_id),
     FOREIGN KEY (destination) REFERENCES Ville(nom),
@@ -55,6 +58,7 @@ CREATE TABLE Reservations (
     reservation_id INT PRIMARY KEY AUTO_INCREMENT,
     mission_id INT,
     utilisateur_id INT,
+    role VARCHAR(50) default  'passager' , 
     FOREIGN KEY (mission_id) REFERENCES Missions(mission_id),
     FOREIGN KEY (utilisateur_id) REFERENCES Utilisateurs(utilisateur_id)
 );

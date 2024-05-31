@@ -16,6 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($user && password_verify($password, $user['mot_de_passe'])) {
         $_SESSION['user_id'] = $user['utilisateur_id'];
+        $_SESSION['user_service'] = $user['service_id'];
         header("Location: index.php");
     } else {
         header("Location: seconnect.php?error=invalid_login");

@@ -1,7 +1,10 @@
 <?php
 session_start();
 require 'config.php';
-
+if (!isset($_SESSION['user_id']) ) {
+    header("Location: seconnect.php");
+    exit();
+}
 // Get the user's service_id
 $user_id = $_SESSION['user_id'] ?? null;
 if (!$user_id) {
@@ -9,6 +12,7 @@ if (!$user_id) {
     header("Location: seconnect.php");
     exit();
 }
+$user_id = $_SESSION['user_id'];
 
 // Fetch service_id of the logged-in user
 $service_query = "SELECT service_id FROM Utilisateurs WHERE utilisateur_id = '$user_id'";
@@ -23,16 +27,56 @@ $num_vehicles_data = mysqli_fetch_assoc($vehicle_result);
 $num_vehicles = $num_vehicles_data['num_vehicles'];
 
 // Fetch number of available vehicles for the service
-$available_vehicle_query = "SELECT COUNT(*) AS num_available FROM Vehicules WHERE service_id = '$service_id' AND est_occupe = FALSE";
+$available_vehicle_query = "SELECT COUNT(*) AS num_available FROM Utilisateurs WHERE service_id = '$service_id' ";
 $available_vehicle_result = mysqli_query($connection, $available_vehicle_query);
 $num_available_data = mysqli_fetch_assoc($available_vehicle_result);
 $num_available = $num_available_data['num_available'];
 
+
 // Fetch number of missions created by the service
-$mission_query = "SELECT COUNT(*) AS num_missions FROM Missions WHERE service_id = '$service_id'";
+$mission_query = "SELECT COUNT(*) AS num_missions FROM Missions WHERE service_id = '$service_id' AND est_supprimer=0 ";
 $mission_result = mysqli_query($connection, $mission_query);
 $num_missions_data = mysqli_fetch_assoc($mission_result);
 $num_missions = $num_missions_data['num_missions'];
+
+
+
+// Prepare and execute SQL query to fetch cars for the user's service
+$select_cars_query = "SELECT * FROM Vehicules WHERE service_id = '$service_id' AND est_supprimer = 0";
+$stmt_select_cars = $connection->query($select_cars_query);
+
+
+// Fetch service_id of the logged-in user
+$service_query = "SELECT service_id FROM Utilisateurs WHERE utilisateur_id = '$user_id'";
+$service_result = mysqli_query($connection, $service_query);
+$service_data = mysqli_fetch_assoc($service_result);
+$service_id = $service_data['service_id'];
+
+// Prepare and execute SQL query to fetch missions for the user's service
+$select_missions_query = "SELECT Missions.*, Utilisateurs.nom_utilisateur AS conducteur, Vehicules.vehicule_id, Vehicules.marque AS voiture_marque, Vehicules.nombre_places AS voiture_places
+                          FROM Missions 
+                          INNER JOIN Utilisateurs ON Missions.conducteur_id = Utilisateurs.utilisateur_id 
+                          INNER JOIN Vehicules ON Missions.vehicule_id = Vehicules.vehicule_id 
+                          WHERE Missions.service_id = '$service_id' AND Missions.est_supprimer = 0";
+$stmt_select_missions = $connection->query($select_missions_query);
+
+// Check if the delete button is clicked
+if (isset($_POST['delete_mission'])) {
+    // Get the mission ID from the form submission
+    $mission_id = $_POST['delete_mission'];
+
+    // Prepare and execute update query to mark the mission as deleted
+    $update_old_missions_query = "UPDATE Missions SET est_supprimer = 1 WHERE mission_id = ?";
+    $stmt_update_old_missions = $connection->prepare($update_old_missions_query);
+    $stmt_update_old_missions->bind_param("i", $mission_id);
+    $stmt_update_old_missions->execute();
+
+    // Redirect back to the same page to refresh mission details
+    header("Location: your_page.php");
+    exit();
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -69,7 +113,7 @@ $num_missions = $num_missions_data['num_missions'];
                     <div class="col-lg-4">
                         <div class="card text-uppercase profit mb-3">
                             <div class="card-body">
-                                <h4>car dispo</h4>
+                                <h4>worker number : </h4>
                                 <h1 class="text-center mt-3 text-black-50"><?php echo $num_available; ?></h1>
                             </div>
                         </div>
@@ -93,11 +137,10 @@ $num_missions = $num_missions_data['num_missions'];
                             <div class="card-header  d-flex justify-content-between ">
                                 <h4 class="text-black">missions details</h4>
                                 <div class=" float-end ">
-                                    <button class="btn  btn-primary ">add-mission</button>
+                                    <a class="btn  btn-primary" href="addmission.php">add-mission</a>
                                 </div>
                             </div>
                             <div class="card-body">
-
                                 <table class="table table-bordered  text-center    custom-table">
                                     <thead>
                                         <tr>
@@ -110,25 +153,25 @@ $num_missions = $num_missions_data['num_missions'];
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Populate with mission data from database -->
-                                        <!-- Example row -->
-                                        <tr>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td class=" d-flex gap-2">
-                                                <div>
-                                                    <a                                                        href="" class=" mb-2 btn btn-info btn-sm">View</a>
-                                                </div>
-                                                <div class="">
-                                                    <form action="" method="POST" class="d-inline">
-                                                        <button type="submit" name="delete_mission" value="mission_id" class="btn btn-danger btn-sm mb-2">Delete</button> 
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <?php
+                                        // Output data of each row
+                                        while ($row = $stmt_select_missions->fetch_assoc()) {
+                                            echo "<tr>";
+                                            echo "<td>" . $row["conducteur"] . "</td>";
+                                            echo "<td>" . $row["vehicule_id"] . " - " . $row["voiture_marque"] . "</td>";
+                                            echo "<td>" . ($row["voiture_places"] - $row["nombre_places_reserves"]) . "</td>";
+                                            echo "<td>" . date("Y-m-d", strtotime($row["date_heure"])) . "</td>";
+                                            echo "<td>" . date("H:i", strtotime($row["date_heure"])) . "</td>";
+                                            echo "<td class='d-flex gap-2'>
+                                                        <div class=''>
+                                                            <form action='' method='POST' class='d-inline'>
+                                                                <button type='submit' name='delete_mission' value='" . $row["mission_id"] . "' class='btn btn-danger btn-sm mb-2'>Delete</button> 
+                                                            </form>
+                                                        </div>
+                                                    </td>";
+                                            echo "</tr>";
+                                        }
+                                        ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -136,6 +179,7 @@ $num_missions = $num_missions_data['num_missions'];
                     </div>
                 </div>
             </div>
+       
 
             <!-- Cars Details Table -->
             <div class="container mb-5">
@@ -144,19 +188,11 @@ $num_missions = $num_missions_data['num_missions'];
                         <div class="card crudtab">
                             <div class="card-header">
                                 <h4 class="text-black">cars details
-                                    <select class="form-select float-end" aria-label="Default select example">
-                                        <option selected>ALL</option>
-                                        <option value="1">hilux</option>
-                                        <option value="2">dacia</option>
-                                        <option value="3">logan</option>
-                                        <option value="4">hilux</option>
-                                    </select>
-                                    <button class="btn  btn-primary float-end ">add-car</button>
+                                    <a class="btn btn-primary float-end" href="addcar.php">add-car</a>
                                 </h4>
                             </div>
                             <div class="card-body">
-
-                                <table class="table table-bordered  text-center    custom-table">
+                                <table class="table table-bordered text-center custom-table">
                                     <thead>
                                         <tr>
                                             <th>image</th>
@@ -166,20 +202,26 @@ $num_missions = $num_missions_data['num_missions'];
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Populate with car data from database -->
-                                        <!-- Example row -->
-                                        <tr>
-                                            <td><img src="image/hiluximg.jpg" class="img-fluid" alt=""></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td class=" d-flex gap-2">
-                                                <div>
-                                                    <form action="" method="POST" class=" d-inline">
-                                                        <button type="submit" name="delete_car" value="car_id" class="btn btn-danger  mb-2">Delete</button> 
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <?php
+                                        // Output data of each row
+                                        while ($row = $stmt_select_cars->fetch_assoc()) {
+                                            echo "<tr>";
+                                            // Dynamically generate image path based on car marque
+                                            $marque_without_spaces = str_replace(' ', '', $row['marque']);
+                                            $image_path = "image/" . $marque_without_spaces . ".png";
+                                            echo "<td><img src='" . $image_path . "' class='img-fluid' alt=''></td>";
+                                            echo "<td>" . $row["marque"] . "</td>";
+                                            echo "<td>" . $row["vehicule_id"] . "</td>";
+                                            echo "<td class='d-flex gap-2'>
+                                                    <div>
+                                                        <form action='' method='POST' class='d-inline'>
+                                                            <button type='submit' name='delete_car' value='" . $row["vehicule_id"] . "' class='btn btn-danger  mb-2'>Delete</button> 
+                                                        </form>
+                                                    </div>
+                                                </td>";
+                                            echo "</tr>";
+                                        }
+                                        ?>
                                     </tbody>
                                 </table>
                             </div>

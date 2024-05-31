@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id']) ) {
+    header("Location: seconnect.php");
+    exit();
+}
 $user_id = $_SESSION['user_id'];
 
 ?>
@@ -45,12 +49,16 @@ $user_id = $_SESSION['user_id'];
                 <?php 
                 // Check if the form is submitted
                 if(isset($_POST['submit'])){
+                    $update_old_missions_query = "UPDATE Missions SET est_supprimer = 1, deletedby = 'systeme' WHERE date_heure < CURDATE()";
+                    $stmt_update_old_missions = $connection->prepare($update_old_missions_query);
+                    $stmt_update_old_missions->execute();
+
                     // Retrieve selected destination and date
                     $selected_destination = $_POST['destination'];
                     $selected_date = $_POST['mission_date'];
 
                     // Query to fetch missions based on destination and date
-                    $missions_query = "SELECT * FROM Missions WHERE destination = '$selected_destination' AND date_heure LIKE '$selected_date%' AND nombre_places_reserves != 0";
+                    $missions_query = "SELECT * FROM Missions WHERE destination = '$selected_destination' AND date_heure LIKE '$selected_date%' AND nombre_places_reserves != 0 AND est_supprimer = 0";
                     $missions_result = mysqli_query($connection, $missions_query);
 
                     // Display missions
@@ -60,8 +68,8 @@ $user_id = $_SESSION['user_id'];
                                     <div class='d-flex gap-3'>
                                         <img src='image/hiluximg.jpg' class='img-fluid p-1 projectimg' alt=''>
                                         <div class='mt-2 desc text-black d-flex flex-column'>
-                                            <p class='title'>vehicule marque</p>
-                                            <p class='title2'>created by : " . $mission['service_id'] . "</p>
+                                            <p class='title'>created by : " . $mission['service_id'] . "</p>
+                                            <p class='title'>" . $mission['date_heure'] . "</p>
                                             <div class='prix title'>place available : " . $mission['nombre_places_reserves'] . "</div>
                                             <form action='reserve.php' method='POST' class='avatar'>
                                                 <input type='hidden' name='mission_id' value='" . $mission['mission_id'] . "'>
