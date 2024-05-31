@@ -21,7 +21,7 @@ $service_data = mysqli_fetch_assoc($service_result);
 $service_id = $service_data['service_id'];
 
 // Fetch number of vehicles for the service
-$vehicle_query = "SELECT COUNT(*) AS num_vehicles FROM Vehicules WHERE service_id = '$service_id'";
+$vehicle_query = "SELECT COUNT(*) AS num_vehicles FROM Vehicules WHERE service_id = '$service_id' and est_supprimer=0";
 $vehicle_result = mysqli_query($connection, $vehicle_query);
 $num_vehicles_data = mysqli_fetch_assoc($vehicle_result);
 $num_vehicles = $num_vehicles_data['num_vehicles'];
@@ -72,7 +72,23 @@ if (isset($_POST['delete_mission'])) {
     $stmt_update_old_missions->execute();
 
     // Redirect back to the same page to refresh mission details
-    header("Location: your_page.php");
+    header("Location: bossdash.php");
+    exit();
+}
+
+
+if (isset($_POST['delete_car'])) {
+    // Get the car ID from the form submission
+    $car_id = $_POST['vehicule_id'] ; 
+
+    // Prepare and execute update query to mark the mission as deleted
+    $update_old_car_query = "UPDATE Vehicules SET est_supprimer = 1 WHERE vehicule_id = ?";
+    $stmt_update_old_car = $connection->prepare($update_old_car_query);
+    $stmt_update_old_car->bind_param("i", $car_id);
+    $stmt_update_old_car->execute();
+
+    // Redirect back to the same page to refresh mission details
+    header("Location: bossdash.php");
     exit();
 }
 
@@ -214,9 +230,11 @@ if (isset($_POST['delete_mission'])) {
                                             echo "<td>" . $row["vehicule_id"] . "</td>";
                                             echo "<td class='d-flex gap-2'>
                                                     <div>
-                                                        <form action='' method='POST' class='d-inline'>
-                                                            <button type='submit' name='delete_car' value='" . $row["vehicule_id"] . "' class='btn btn-danger  mb-2'>Delete</button> 
-                                                        </form>
+                                                    <form action='bossdash.php' method='POST' class='d-inline'>
+                                                    <input type='hidden' name='vehicule_id' value='" . $row["vehicule_id"] . "' ></button>
+                                                    <button type='submit' name='delete_car' value='" . $row["vehicule_id"] . "' class='btn btn-danger mb-2'>Delete</button>
+                                                </form>
+                                                
                                                     </div>
                                                 </td>";
                                             echo "</tr>";
