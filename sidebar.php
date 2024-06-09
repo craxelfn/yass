@@ -48,6 +48,12 @@ function isUserAdmin($role) {
                     </a>
                 </li>
                 <li class="sidebar-item ">
+                    <a href="mymission.php" class="sidebar-link">
+                        <i class="fa-regular fa-user pe-2"></i>
+                        my mission
+                    </a>
+                </li>
+                <li class="sidebar-item ">
                     <a href="profile.php" class="sidebar-link">
                         <i class="fa-regular fa-user pe-2"></i>
                         profile

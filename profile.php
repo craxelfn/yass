@@ -92,40 +92,7 @@ if (isset($_POST['change_avatar'])) {
     exit();
 }
 
-if (isset($_POST['delete_reservation'])) {
-    $mission_id = $_POST['mission_id'];
-    $role = $_POST['role'];
 
-    if ($role == 'driver') {
-        // Prepare and execute the query to delete reservations
-        $delete_reservations_query = "DELETE FROM Reservations WHERE mission_id = ?";
-        $stmt_delete_reservations = $connection->prepare($delete_reservations_query);
-        $stmt_delete_reservations->bind_param("i", $mission_id);
-        $stmt_delete_reservations->execute();
-
-        // Prepare and execute the query to delete the corresponding mission
-        $update_mission_query = "UPDATE Missions SET est_supprimer = 1, deletedby = ? WHERE mission_id = ?";
-        $stmt_update_mission = $connection->prepare($update_mission_query);
-        $stmt_update_mission->bind_param("si", $user_id, $mission_id);
-        $stmt_update_mission->execute();
-    } else {
-        // Update the mission's reserved places count
-        $update_mission_query = "UPDATE Missions SET nombre_places_reserves = nombre_places_reserves + 1 WHERE mission_id = ?";
-        $stmt_update_mission = $connection->prepare($update_mission_query);
-        $stmt_update_mission->bind_param("i", $mission_id);
-        $stmt_update_mission->execute();
-
-        // Prepare and execute the query to delete the reservation for the current user and mission
-        $delete_reservation_query = "DELETE FROM Reservations WHERE utilisateur_id = ? AND mission_id = ?";
-        $stmt_delete_reservation = $connection->prepare($delete_reservation_query);
-        $stmt_delete_reservation->bind_param("ii", $user_id, $mission_id);
-        $stmt_delete_reservation->execute();
-    }
-
-    // Redirect to profile page after deleting reservation
-    header("Location: profile.php");
-    exit();
-}
 
 ?>
 
@@ -190,48 +157,7 @@ if (isset($_POST['delete_reservation'])) {
                             </form>
                         </div>
                     </div>
-                    <div class="container mt-5 mb-5">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="card crudtab">
-                                    <div class="card-header">
-                                        <h4 class="mt-2 text-black">My Reservations:</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <table class="table table-bordered text-center custom-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Destination</th>
-                                                    <th>Date</th>
-                                                    <th>Time</th>
-                                                    <th>role</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php while ($reservation = mysqli_fetch_assoc($reservations_result)): ?>
-                                                <tr>
-                                                    <td><?php echo $reservation['destination']; ?></td>
-                                                    <td><?php echo date('Y-m-d', strtotime($reservation['date_heure'])); ?></td>
-                                                    <td><?php echo date('H:i', strtotime($reservation['date_heure'])); ?></td>
-                                                    <td><?php echo $reservation['role']; ?></td>
-                                                    <td class="d-flex gap-2">
-                                                    
-                                                        <form action="profile.php" method="POST" class="d-inline">
-                                                            <input type="hidden" name="mission_id" value="<?php echo $reservation['mission_id']; ?>">
-                                                            <input type="hidden" name="role" value="<?php echo $reservation['role']; ?>">
-                                                            <button type="submit" name="delete_reservation" class="btn btn-danger btn-sm mb-2">Cancel</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                                <?php endwhile; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
                 </div>
             </div> 
         </div>

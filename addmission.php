@@ -108,39 +108,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php include 'sidebar.php'; ?>
     <div class="main">
     <?php include 'nav.php'; ?>    
-    <div class="container-fluid ">
-    <form action="addmission.php" method="POST" class="d-flex flex-column gap-3 text-white w-75 m-auto mt-5 p-5">
-        <label for="formFile" class="form-label text-black-50 h4">Enter mission information</label>
-        <!-- Select worker -->
-        <select name="worker_id" class="form-control">
-            <option value="">Select driver</option>
-            <?php while ($worker = mysqli_fetch_assoc($workers_result)) : ?>
-                <option value="<?php echo $worker['utilisateur_id']; ?>"><?php echo $worker['nom_utilisateur']; ?></option>
-            <?php endwhile; ?>
+    <div class="container-fluid">
+    <form action="index.html" class="d-flex flex-column gap-3 text-white w-75 m-auto mt-5 p-5">
+        <label for="formFile" class="form-label text-white-50 h4">Entrer les informations de votre projet</label>
+        <input type="file" name="product_images[]" accept="image/*" class="form-control" multiple>
+        <div id="image-preview"></div>
+        <input type="text" class="form-control" placeholder="Titre" maxlength="100">
+        <input type="number" class="form-control" placeholder="Prix">
+        <select class="form-control">
+            <option value="">Sélectionner une catégorie</option>
+            <option value="first">Web</option>
+            <option value="second">Design</option>
+            <option value="third">Mobile</option>
         </select>
-        <!-- Select vehicle -->
-        <select name="vehicle_id" class="form-control">
-            <option value="">Select Vehicle</option>
-            <?php while ($vehicle = mysqli_fetch_assoc($vehicles_result)) : ?>
-                <option value="<?php echo $vehicle['vehicule_id']; ?>"><?php echo $vehicle['marque']; ?></option>
-            <?php endwhile; ?>
-        </select>
-        <!-- Date and time inputs -->
-        <input type="date" name="mission_date" class="form-control" placeholder="Date">
-        <input type="time" name="mission_time" class="form-control" placeholder="Time">
-        <!-- Select destination -->
-        <select name="destination" class="form-control">
-            <option value="">Select Destination</option>
-            <?php while ($destination = mysqli_fetch_assoc($destinations_result)) : ?>
-                <option value="<?php echo $destination['nom']; ?>"><?php echo $destination['nom']; ?></option>
-            <?php endwhile; ?>
-        </select>
-        <!-- Description textarea -->
-        <!-- <textarea name="description" placeholder="Description" class="form-control" id="myTextarea"></textarea> -->
-        <!-- Submit button -->
-        <input type="submit" value="Submit" class="btn btn-secondary">
+        <input type="date" class="form-control" placeholder="Date maximum">
+        <textarea placeholder="Description" class="form-control" id="myTextarea"></textarea>
+        <input type="submit" value="Valider" class="btn btn-primary">
     </form>
-    </div>
+</div>
+    
+    
     </div>
 </div>
 <?php include 'footer.php'; ?>    

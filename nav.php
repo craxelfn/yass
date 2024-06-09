@@ -40,8 +40,9 @@ if (isset($_GET['signout'])) {
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1" style="">
             <?php if (isAdmin($role)) : ?>
-                <li><a class="dropdown-item" href="bossdash.php">Setting</a></li>
+            <li><a class="dropdown-item" href="bossdash.php">dashboard</a></li>
             <?php endif; ?>
+            <li><a class="dropdown-item" href="mymission.php">my-mission</a></li>
             <li><a class="dropdown-item" href="profile.php">Profile</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="seconnect.php">Sign out</a></li>
